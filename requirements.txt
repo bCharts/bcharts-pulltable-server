@@ -1,0 +1,6 @@
+flask
+pillow
+pandas
+google-api-python-client
+requests
+xlrd
