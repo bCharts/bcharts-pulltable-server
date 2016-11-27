@@ -1,10 +1,6 @@
 from requests import Request, Session
 import urllib
 
-'''
-csv_file = open('sample_bcharts.csv', 'r')
-csv = csv_file.read()
-print(csv)'''
 
 def uploade_csv(csv):
     enc_redirect_uri = urllib.parse.quote_plus('https://beta.bcharts.xyz/chartdesigner', safe='', encoding=None, errors=None)
