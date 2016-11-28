@@ -1,5 +1,4 @@
 import cv2
-from matplotlib import pyplot as plt
 import TableDetection.houghtr as houghtr
 import copy
 import TableDetection.tbdutil as util
@@ -11,19 +10,20 @@ import TableDetection.googlevision as googlevision
 from TableDetection.table_cell import Cell
 
 def get_csv(cv2_image):
-    # org_img = cv2.imread('C:\\Users\\bruce\\Desktop\\ex\\134513245.PNG')
+    # cv2_image = cv2.imread('C:\\Users\\bruce\\Desktop\\ex\\134513245.PNG')
     org_img = cv2.resize(cv2_image, (0,0), fx=2, fy=2)
+    util.show_img_plot(org_img)
+
     height, width = org_img.shape[:2]
-    print(width, height)
+
+    result_gt_img = copy.copy(org_img)
 
     gray_img = cv2.cvtColor(org_img, cv2.COLOR_RGB2GRAY)
-    result_gt_img = copy.copy(org_img)
-    ret1, th1 = cv2.threshold(gray_img, 200, 255, cv2.THRESH_BINARY)
-    guideaddition.add_guideline(th1)
-    # plt.imshow(th1, 'gray')
-    # plt.show()
+    ret1, mono_img = cv2.threshold(gray_img, 200, 255, cv2.THRESH_BINARY)
+    guideaddition.add_guideline(mono_img)
+    util.show_img_plot(mono_img, gray=True)
 
-    lines = houghtr.get_houghtr(th1)
+    lines = houghtr.get_houghtr(mono_img)
     # n_cols = util.get_num_v(lines) - 1
     # n_rows = util.get_num_h(lines) - 1
     # print('number of cols: ' + str(n_cols))
@@ -34,15 +34,15 @@ def get_csv(cv2_image):
     h_lines = util.get_h_lines(lines)
     lineremoval.remove_extra_hlines(h_lines, height)
 
-    # pprint(v_lines)
-
     tl_coords = []
     for r_line in h_lines:
         r_coords = []
         for c_line in v_lines:
             coor_inter = util.get_intersecting_point(r_line, c_line)
             if coor_inter[0] == 'ok':
-                r_coords.append(coor_inter[1:])
+                # r_coords.append((c_line[0][0], int(coor_inter[2])))
+                r_coords.append((c_line[0][0], r_line[0][1]))
+                print(coor_inter[1:], ' ', int(coor_inter[1]), ',', int(coor_inter[2]))
                 # cv2.circle(result_gt_img, coor_inter[1:], 5, (0,255,0), 3)
         tl_coords.append(r_coords)
 
@@ -56,33 +56,113 @@ def get_csv(cv2_image):
             r_cells.append(cell)
         cells.append(r_cells)
 
-    gv_result = googlevision.analyze_image(org_img)
+    for r_cells in cells:
+        for cell in r_cells:
+            rgb = (random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))
+            cv2.rectangle(result_gt_img, cell.get_pt1(), cell.get_pt2(), rgb, 1)
+    util.show_img_plot(result_gt_img)
+
+    gv_result = googlevision.analyze_image(mono_img)
+    try:
+        gv_result['textAnnotations']
+    except KeyError:
+        return None
+
     if len(gv_result['textAnnotations']) > 2:
         for word in gv_result['textAnnotations'][1:]:
-            l1 = ((word['boundingPoly']['vertices'][0]['x'], word['boundingPoly']['vertices'][0]['y']), (word['boundingPoly']['vertices'][2]['x'], word['boundingPoly']['vertices'][2]['y']))
-            l2 = ((word['boundingPoly']['vertices'][1]['x'], word['boundingPoly']['vertices'][1]['y']), (word['boundingPoly']['vertices'][3]['x'], word['boundingPoly']['vertices'][3]['y']))
+            try:
+                p1_x = word['boundingPoly']['vertices'][0]['x']
+            except KeyError:
+                p1_x = None
+            try:
+                p1_y = word['boundingPoly']['vertices'][0]['y']
+            except KeyError:
+                p1_y = None
+            try:
+                p3_x = word['boundingPoly']['vertices'][2]['x']
+            except KeyError:
+                p3_x = None
+            try:
+                p3_y = word['boundingPoly']['vertices'][2]['y']
+            except KeyError:
+                p3_y = None
+
+            try:
+                p2_x = word['boundingPoly']['vertices'][1]['x']
+            except KeyError:
+                p2_x = None
+            try:
+                p2_y = word['boundingPoly']['vertices'][1]['y']
+            except KeyError:
+                p2_y = None
+            try:
+                p4_x = word['boundingPoly']['vertices'][3]['x']
+            except KeyError:
+                p4_x = None
+            try:
+                p4_y = word['boundingPoly']['vertices'][3]['y']
+            except KeyError:
+                p4_y = None
+
+            if p1_x is None:
+                p1_x = p4_x
+                if p4_x is None:
+                    p1_x = 0
+            if p1_y is None:
+                p1_y = p2_y
+                if p2_y is None:
+                    p1_y = 0
+            if p3_x is None:
+                p3_x = p2_x
+                if p2_x is None:
+                    p3_x = p2_x
+            if p3_y is None:
+                p3_y = p4_y
+                if p4_y is None:
+                    p3_y = 0
+            if p2_x is None:
+                p2_x = p3_x
+                if p3_x is None:
+                    p3_x = 0
+            if p2_y is None:
+                p2_y = p1_y
+                if p1_y is None:
+                    p2_y = 0
+            if p4_x is None:
+                p4_x = p1_x
+                if p1_x is None:
+                    p4_x = 0
+            if p4_y is None:
+                p4_y = p3_y
+                if p3_y is None:
+                    p4_y = 0
+
+            l1 = ((p1_x, p1_y), (p3_x, p3_y))
+            l2 = ((p2_x, p2_y), (p4_x, p4_y))
+
+            cv2.line(result_gt_img, (p1_x, p1_y), (p2_x, p2_y), (0,255,0), 1)
+            cv2.line(result_gt_img, (p2_x, p2_y), (p3_x, p3_y), (0,255,0), 1)
+            cv2.line(result_gt_img, (p3_x, p3_y), (p4_x, p4_y), (0,255,0), 1)
+            cv2.line(result_gt_img, (p4_x, p4_y), (p1_x, p1_y), (0,255,0), 1)
+
             ret, cx, cy = util.get_intersecting_point(l1, l2)
             if ret == 'ok':
                 for r_cells in cells:
                     for cell in r_cells:
                         if cell.validate_point_contained((cx, cy)):
                             cell.add_text(word['description'])
-                            print(word['description'] + ' is added')
+                            # print(word['description'] + ' is added')
+
+    util.show_img_plot(result_gt_img)
 
     final_csv = ''
     for r_cells in cells:
         for cell in r_cells:
             final_csv += '"' + cell.get_text() + '",'
+            if cell.get_text() != '':
+                cv2.rectangle(result_gt_img, cell.get_pt1(), cell.get_pt2(), (255,0,0), 2)
         final_csv = final_csv[:-1] + '\n'
 
-
-    for r_cells in cells:
-        for cell in r_cells:
-            rgb = (random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))
-            cv2.rectangle(result_gt_img, cell.get_pt1(), cell.get_pt2(), rgb, 1)
-
-    # plt.xticks([]), plt.yticks([])
-    # plt.imshow(result_gt_img)
-    # plt.show()
+    util.show_img_plot(result_gt_img)
 
     return final_csv

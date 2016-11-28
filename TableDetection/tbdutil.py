@@ -1,6 +1,11 @@
 from urllib.request import urlopen
 import numpy as np
 import cv2
+from matplotlib import pyplot as plt
+import base64
+from io import BytesIO
+from PIL import Image
+
 
 def url_to_image(url):
     # download the image, convert it to a NumPy array, and then read
@@ -23,16 +28,21 @@ def get_intersecting_point(l1, l2):
     x4 = l2[1][0]
     y4 = l2[1][1]
 
-    t = ((x4-x3)*(y1-y3)-(y4-y3)*(x1-x3))/((y4-y3)*(x2-x1)-(x4-x3)*(y2-y1))
-    s = ((x2-x1)*(y1-y3)-(y2-y1)*(x1-x3))/((y4-y3)*(x2-x1)-(x4-x3)*(y2-y1))
+    under_t = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+    if under_t == 0:
+        return 'error', None, None
+
+    t = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / under_t
+    s = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / under_t
 
     if s < 0 or 1 < s or t < 0 or 1 < t:
         return 'error', None, None
 
-    px = ((x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4))/((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4))
-    py = ((x1*y2-y1*x2)*(y3-y4)-(y1-y2)*(x3*y4-y3*x4))/((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4))
+    px = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4))
+    py = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4))
 
-    return 'ok', round(px), round(py)
+    return 'ok', px, py
+
 
 def get_num_v(lines):
     cnt = 0
@@ -42,6 +52,7 @@ def get_num_v(lines):
 
     return cnt
 
+
 def get_num_h(lines):
     cnt = 0
     for l in lines:
@@ -49,6 +60,7 @@ def get_num_h(lines):
             cnt += 1
 
     return cnt
+
 
 def get_v_lines(lines):
     v_lines = []
@@ -75,6 +87,7 @@ def get_v_lines(lines):
 
     return v_lines
 
+
 def get_h_lines(lines):
     h_lines = []
     for l in lines:
@@ -100,5 +113,23 @@ def get_h_lines(lines):
 
     return h_lines
 
+
 def to_cv2(pil_image):
-    return np.array(pil_image)
+    return np.asarray(pil_image)
+
+
+def show_img_plot(cv2_img, gray=False):
+    plt.xticks([]), plt.yticks([])
+    if gray:
+        plt.imshow(cv2_img, 'gray')
+    else:
+        plt.imshow(cv2_img)
+    plt.show()
+
+
+def readb64(base64_string):
+    sbuf = BytesIO()
+    sbuf.write(base64.b64decode(base64_string))
+    pimg = Image.open(sbuf)
+
+    return cv2.cvtColor(np.array(pimg), cv2.COLOR_RGB2BGR)

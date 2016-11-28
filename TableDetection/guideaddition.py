@@ -13,7 +13,8 @@ def add_guideline(bi_img):
                 black_found += 1
 
         # print(str(y) + ': ' + str(black_found / width))
-        if black_found / width > 0.02:
+        # if black_found / width > 0.02:
+        if black_found / width != 0:
             if blank_row_start_idx != -1:
                 blank_row_finish_idx = y - 1
         else:
@@ -43,7 +44,8 @@ def add_guideline(bi_img):
             if bi_img[y, x] == 0:
                 black_found += 1
 
-        if black_found / height < 0.02:
+        # if black_found / height < 0.02:
+        if black_found / height == 0:
             if blank_col_start_idx == -1:
                 blank_col_start_idx = x
         else:

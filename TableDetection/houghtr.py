@@ -16,36 +16,39 @@ def get_houghtr(source):
         b = np.sin(theta)
         x0 = a * rho
         y0 = b * rho
-        '''
+
         x1 = int(x0 + diagonal * (-b))
         if x1 < 0: x1 = 0
         if x1 > width: x1 = width
-        y1 = int(y0 + diagonal * (a))
+        y1 = int(y0 + diagonal * a)
         if y1 < 0: y1 = 0
         if y1 > height: y1 = height
         x2 = int(x0 - diagonal * (-b))
         if x2 < 0: x2 = 0
         if x2 > width: x2 = width
-        y2 = int(y0 - diagonal * (a))
+        y2 = int(y0 - diagonal * a)
         if y2 < 0: y2 = 0
         if y2 > height: y2 = height
 
         d_slope = ''
         slope_under = x2 - x1
-        slope = None
-        if slope_under != 0:
+        slope_over = y2 - y1
+        if slope_under == 0:
+            d_slope = 'v'
+        elif slope_over == 0:
+            d_slope = 'h'
+        else:
             slope = abs((y2-y1)/slope_under)
             if slope < 0.1:
                 d_slope = 'h'
-            elif slope > 10:
+                y2 = y1
+            else:
                 d_slope = 'v'
-        else:
-            d_slope = 'v'
+                x2 = x1
 
-        if d_slope == 'h' or d_slope == 'v':
-            coordinates.append((d_slope, (x1, y1), (x2, y2), slope))'''
+        coordinates.append((d_slope, [x1, y1], [x2, y2]))
 
-        # print(str(x0) + ' ' + str(y0))
+        '''
         d_slope = ''
         slope = 0
         if x0 <= 0:
@@ -60,10 +63,10 @@ def get_houghtr(source):
             x2 = int(x0)
             y2 = height - 1
             d_slope = 'v'
-            slope = 1
+            slope = 1'''
 
-        # print(str(x1) + ' ' + str(y1) + ' , ' + str(x2) + ' ' + str(y2))
+        print('x0: ' + str(x0) + ' , y0: ' + str(y0) + ' , slop: ' + str(d_slope) + ' , x1: ' + str(x1) + ' , y1: ' + str(y1) + ' , x2: ' + str(x2) + ' , y2: ' + str(y2))
 
-        coordinates.append((d_slope, (x1, y1), (x2, y2), slope))
+        # coordinates.append((d_slope, [x1, y1], [x2, y2], slope))
 
     return coordinates

@@ -21,7 +21,7 @@ def analyze_image(bImage):
     })
 
     response = service_request.execute()
-
+    '''
     textAnnotations = response['responses'][0].get('textAnnotations')
     if textAnnotations is not None:
         for i in range(1, len(textAnnotations)):
@@ -48,6 +48,6 @@ def analyze_image(bImage):
                 p1_x = vertices[p1].get('x', 0)
                 p1_y = vertices[p1].get('y', 0)
                 p2_x = vertices[p2].get('x', 0)
-                p2_y = vertices[p2].get('y', 0)
+                p2_y = vertices[p2].get('y', 0)'''
 
     return response['responses'][0]

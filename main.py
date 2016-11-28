@@ -5,6 +5,7 @@ import os
 import googlevision
 import base64
 from io import BytesIO
+from io import StringIO
 from PIL import Image
 import csvup
 import pandas
@@ -12,6 +13,9 @@ import ocrwebservice
 import json
 from TableDetection import tbdetection
 from TableDetection import tbdutil
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
 
 app = Flask(__name__)
 srv_port = int(os.getenv('PORT', 8000))
@@ -115,28 +119,36 @@ def pull_table_google():
 
 
 @app.route('/pulltable', methods=['POST'])
-def puu_table():
-    crop_upper = float(request.values['top'])
-    crop_left = float(request.values['left'])
-    crop_width = float(request.values['width'])
-    crop_height = float(request.values['height'])
+def pull_table():
+    crop_top = int(request.values['top'])
+    crop_left = int(request.values['left'])
+    crop_width = int(request.values['width'])
+    crop_height = int(request.values['height'])
 
     full_imagesrc = request.values['imagesrc']
     imagesrc = full_imagesrc.split(',', 1)[1]
 
-    image_byte = BytesIO(base64.b64decode(imagesrc))
-    org_image = Image.open(image_byte)
+    # image_byte = BytesIO(base64.b64decode(imagesrc))
+    image_byte = base64.b64decode(imagesrc)
+    # file_bytes = np.asarray(image_byte, dtype=np.uint8)
+    file_bytes = np.fromstring(image_byte, dtype=np.uint8)
+    org_image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+    # org_image = Image.open(image_byte)
 
     crop_right = crop_width + crop_left
-    crop_lower = crop_height + crop_upper
+    crop_bottom = crop_height + crop_top
 
     # Crop image
-    cropped_image = org_image.crop((crop_left, crop_upper, crop_right, crop_lower))
+    # cropped_image = org_image.crop((crop_left, crop_top, crop_right, crop_bottom))
+    cropped_image = org_image[crop_top:crop_bottom, crop_left:crop_right]
+
 
     # Convert image to cv2 format
-    cv2_image = tbdutil.to_cv2(cropped_image)
+    # cv2_image = tbdutil.to_cv2(cropped_image)
 
-    result_csv = tbdetection.get_csv(cv2_image)
+    result_csv = tbdetection.get_csv(cropped_image)
+    if result_csv is None:
+        return json.dumps({'result': 'error', 'msg': 'no data found'})
 
     print(result_csv)
 
