@@ -1,7 +1,7 @@
 from urllib.request import urlopen
 import numpy as np
 import cv2
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 import base64
 from io import BytesIO
 from PIL import Image
@@ -117,7 +117,6 @@ def get_h_lines(lines):
 def to_cv2(pil_image):
     return np.asarray(pil_image)
 
-
 def show_img_plot(cv2_img, gray=False):
     plt.xticks([]), plt.yticks([])
     if gray:
@@ -125,7 +124,6 @@ def show_img_plot(cv2_img, gray=False):
     else:
         plt.imshow(cv2_img)
     plt.show()
-
 
 def readb64(base64_string):
     sbuf = BytesIO()

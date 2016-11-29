@@ -1,7 +1,6 @@
 from pprint import pprint
 import threading
 
-
 def compare_pattern(org_img, offset_x, offset_y, pattern):
     if org_img.size[0] < offset_x + pattern.size[0] or org_img.size[1] < offset_y + pattern.size[1]:
         return 0

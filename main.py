@@ -15,7 +15,6 @@ from TableDetection import tbdetection
 from TableDetection import tbdutil
 import cv2
 import numpy as np
-from matplotlib import pyplot as plt
 
 app = Flask(__name__)
 srv_port = int(os.getenv('PORT', 8000))
@@ -128,35 +127,53 @@ def pull_table():
     full_imagesrc = request.values['imagesrc']
     imagesrc = full_imagesrc.split(',', 1)[1]
 
-    # image_byte = BytesIO(base64.b64decode(imagesrc))
     image_byte = base64.b64decode(imagesrc)
-    # file_bytes = np.asarray(image_byte, dtype=np.uint8)
     file_bytes = np.fromstring(image_byte, dtype=np.uint8)
     org_image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-    # org_image = Image.open(image_byte)
 
     crop_right = crop_width + crop_left
     crop_bottom = crop_height + crop_top
 
     # Crop image
-    # cropped_image = org_image.crop((crop_left, crop_top, crop_right, crop_bottom))
     cropped_image = org_image[crop_top:crop_bottom, crop_left:crop_right]
 
+    ret_result_code = 'ok'
 
-    # Convert image to cv2 format
-    # cv2_image = tbdutil.to_cv2(cropped_image)
-
-    result_csv = tbdetection.get_csv(cropped_image)
-    if result_csv is None:
-        return json.dumps({'result': 'error', 'msg': 'no data found'})
+    ret, result_csv, result_images = tbdetection.get_csv(cropped_image)
+    if ret != 'ok':
+        ret_result_code = 'table_detection_err'
+        return json.dumps({'result': ret_result_code, 'msg': ''})
 
     print(result_csv)
 
     resp = Response('')
     resp.headers['Content-Type'] = 'text/plain'
-    rd_url = csvup.uploade_csv(result_csv)
+    ret, rd_url = csvup.uploade_csv(result_csv)
+    if ret != 'ok':
+        ret_result_code = 'upload_csv_err'
 
-    return json.dumps({'result': 'ok', 'msg': '', 'url': rd_url})
+    step_images = []
+    for result_image in result_images:
+        # tbdutil.show_img_plot(result_image)
+        ret, buf = cv2.imencode('.PNG', result_image)
+        b64_image = base64.b64encode(buf)
+        step_images.append(b64_image.decode('utf-8'))
+
+    b64_result_csv = base64.standard_b64encode(bytearray(result_csv.encode('utf-8'))).decode('utf-8')
+
+    return json.dumps({
+        'result': ret_result_code,
+        'url': rd_url,
+        'csv': b64_result_csv,
+        'images': {
+            'step1': 'data:image/png;base64,' + step_images[0],
+            'step2': 'data:image/png;base64,' + step_images[1],
+            'step3': 'data:image/png;base64,' + step_images[2],
+            'step4': 'data:image/png;base64,' + step_images[3],
+            'step5': 'data:image/png;base64,' + step_images[4],
+            'step6': 'data:image/png;base64,' + step_images[5]
+        }
+    })
 
 
 if __name__ == '__main__':

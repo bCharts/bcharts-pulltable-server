@@ -21,33 +21,5 @@ def analyze_image(bImage):
     })
 
     response = service_request.execute()
-    '''
-    textAnnotations = response['responses'][0].get('textAnnotations')
-    if textAnnotations is not None:
-        for i in range(1, len(textAnnotations)):
-            vertices = textAnnotations[i]['boundingPoly']['vertices']
-            for p1 in range(len(vertices)):
-                if p1 == len(vertices) - 1:
-                    p2 = 0
-                else:
-                    p2 = p1 + 1
-                p1_x = vertices[p1].get('x', 0)
-                p1_y = vertices[p1].get('y', 0)
-                p2_x = vertices[p2].get('x', 0)
-                p2_y = vertices[p2].get('y', 0)
-
-    logoAnnotations = response['responses'][0].get('logoAnnotations')
-    if logoAnnotations is not None:
-        for i in range(0, len(logoAnnotations)):
-            vertices = logoAnnotations[i]['boundingPoly']['vertices']
-            for p1 in range(len(vertices)):
-                if p1 == len(vertices) - 1:
-                    p2 = 0
-                else:
-                    p2 = p1 + 1
-                p1_x = vertices[p1].get('x', 0)
-                p1_y = vertices[p1].get('y', 0)
-                p2_x = vertices[p2].get('x', 0)
-                p2_y = vertices[p2].get('y', 0)'''
 
     return response['responses'][0]

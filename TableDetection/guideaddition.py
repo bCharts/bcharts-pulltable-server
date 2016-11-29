@@ -44,8 +44,8 @@ def add_guideline(bi_img):
             if bi_img[y, x] == 0:
                 black_found += 1
 
-        # if black_found / height < 0.02:
-        if black_found / height == 0:
+        if black_found / height < 0.02:
+        # if black_found / height == 0:
             if blank_col_start_idx == -1:
                 blank_col_start_idx = x
         else:

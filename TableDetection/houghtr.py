@@ -65,7 +65,7 @@ def get_houghtr(source):
             d_slope = 'v'
             slope = 1'''
 
-        print('x0: ' + str(x0) + ' , y0: ' + str(y0) + ' , slop: ' + str(d_slope) + ' , x1: ' + str(x1) + ' , y1: ' + str(y1) + ' , x2: ' + str(x2) + ' , y2: ' + str(y2))
+        # print('x0: ' + str(x0) + ' , y0: ' + str(y0) + ' , slop: ' + str(d_slope) + ' , x1: ' + str(x1) + ' , y1: ' + str(y1) + ' , x2: ' + str(x2) + ' , y2: ' + str(y2))
 
         # coordinates.append((d_slope, [x1, y1], [x2, y2], slope))
 

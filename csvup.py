@@ -28,5 +28,7 @@ def uploade_csv(csv):
     first_q = resp.text.index('"')
     seconde_q = resp.text.index('"', first_q + 1)
     redirect_url = resp.text[first_q+1:seconde_q]
+    if redirect_url[0:4] != 'http':
+        return 'error', ''
 
-    return redirect_url
+    return 'ok', redirect_url

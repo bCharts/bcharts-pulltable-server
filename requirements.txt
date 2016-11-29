@@ -4,5 +4,4 @@ pandas
 google-api-python-client
 requests
 xlrd
-matplotlib
 opencv-python
