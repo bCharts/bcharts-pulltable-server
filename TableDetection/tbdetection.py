@@ -8,10 +8,13 @@ import TableDetection.guideaddition as guideaddition
 import TableDetection.lineremoval as lineremoval
 import TableDetection.googlevision as googlevision
 from TableDetection.table_cell import Cell
+from settingsmanager import get_settings
 
 
 def get_csv(cv2_image):
     # cv2_image = cv2.imread('C:\\Users\\bruce\\Desktop\\ex\\134513245.PNG')
+    mono_thr = int(get_settings('mono_thr'))
+
     org_img = cv2.resize(cv2_image, (0, 0), fx=2, fy=2)
     step1_org_img = copy.copy(org_img)
 
@@ -20,8 +23,7 @@ def get_csv(cv2_image):
     result_gt_img = copy.copy(org_img)
 
     gray_img = cv2.cvtColor(org_img, cv2.COLOR_RGB2GRAY)
-    ret1, mono_img = cv2.threshold(gray_img, 200, 255, cv2.THRESH_BINARY)
-    for_google_vision_img = copy.copy(mono_img)
+    ret1, mono_img = cv2.threshold(gray_img, mono_thr, 255, cv2.THRESH_BINARY)
     step2_mono_img = copy.copy(mono_img)
 
     guideaddition.add_guideline(mono_img)

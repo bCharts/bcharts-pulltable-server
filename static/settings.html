@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery-3.1.1.js"></script>
+    <script>
+        $(document).ready(function () {
+            $(document.body).height($(window).height() - 20);
+            load_settings();
+            $('#progress').fadeOut(200);
+        });
+
+        $(window).resize(function () {
+            $(document.body).height($(window).height() - 20);
+        });
+
+        var update_settings = function () {
+            $('#progress').fadeIn(200);
+            var update_value = '{';
+
+            var inputs = $('input[type="number"]');
+            $.each(inputs, function (i) {
+                update_value += '\"' + inputs[i].id + '\":\"' + inputs[i].value + '\",';
+            });
+
+            var selects = $('select');
+            $.each(selects, function (i) {
+                update_value += '\"' + selects[i].id+ '\":\"' + $(selects[i]).find('option:selected').text() + '\",';
+            });
+
+            update_value = update_value.slice(0, -1);
+            update_value += '}';
+
+            console.log(update_value);
+
+            $.post({
+                url: 'http://127.0.0.1:8000/setsettings',
+                data:  'q=' + btoa(JSON.stringify(update_value)),
+                success: function (data, textStatus, jqXHR) {
+                    load_settings();
+                    $('#progress').fadeOut(200);
+                }
+            });
+        }
+
+        var load_settings = function () {
+            $('#settingview').empty();
+
+            $.getJSON('http://127.0.0.1:8000/getsettings', function (data) {
+                var table_tag = '<table class="settings_table">'
+                $.each(data.settings, function (i) {
+                    var cur_setting = data.settings[i];
+                    var tag = '<tr>'
+                    tag += '<td>' + cur_setting.set_name + '</td>';
+                    if (cur_setting.datatype != 'bool')
+                        tag += '<td><input id="' + cur_setting.set_name + '" type="number" value="' + cur_setting.set_value + '"></td>';
+                    else {
+                        tag += '<td><select id="' + cur_setting.set_name + '">';
+                        if (cur_setting.set_value == 'TRUE')
+                            tag += '<option value="TRUE" selected>TRUE</option>';
+                        else
+                            tag += '<option value="TRUE">TRUE</option>';
+                        if (cur_setting.set_value == 'FALSE')
+                            tag += '<option value="FALSE" selected>FALSE</option>';
+                        else
+                            tag += '<option value="FALSE">FALSE</option>';
+                        tag += '</select></td>';
+                    }
+                    tag += '<td class="settings_comment">' + cur_setting.comment + '</td>';
+                    tag += '</tr>';
+                    table_tag += tag;
+                });
+
+                table_tag += '<tr><td colspan=3 style="text-align: center;">';
+                table_tag += '<button onclick="update_settings();">Submit</button>';
+                table_tag += '</td></tr>'
+                table_tag += '</table>';
+
+                $('#settingview').append(table_tag);
+            });
+        }
+    </script>
+    <link rel="stylesheet" type="text/css" href="settings.css">
+</head>
+<body>
+<table>
+    <tr>
+        <td class="menu">
+            <a href="resultview.html">Result View</a> / <a href="settings.html">Settings</a>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="settingview" id="settingview"></div>
+        </td>
+    </tr>
+</table>
+<div id="progress" class="progress">
+    <img style="width: 300px; border: none;" src="flybeefly.gif">
+</div>
+</body>
+</html>

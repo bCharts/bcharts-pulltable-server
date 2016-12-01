@@ -5,7 +5,6 @@ import os
 import googlevision
 import base64
 from io import BytesIO
-from io import StringIO
 from PIL import Image
 import csvup
 import pandas
@@ -15,13 +14,17 @@ from TableDetection import tbdetection
 from TableDetection import tbdutil
 import cv2
 import numpy as np
+import historymanager
+import settingsmanager
 
 app = Flask(__name__)
 srv_port = int(os.getenv('PORT', 8000))
 
+
 @app.route('/', methods=['GET'])
 def index():
     return 'Running OK'
+
 
 @app.route('/pulltableocrwebservice', methods=['POST'])
 def pull_table_ocrwebservice():
@@ -73,6 +76,7 @@ def pull_table_ocrwebservice():
     rd_url = csvup.uploade_csv(csv)
 
     return json.dumps({'result': result_code, 'msg': result_msg, 'url': rd_url})
+
 
 @app.route('/pulltablegoogle', methods=['POST'])
 def pull_table_google():
@@ -161,6 +165,8 @@ def pull_table():
 
     b64_result_csv = base64.standard_b64encode(bytearray(result_csv.encode('utf-8'))).decode('utf-8')
 
+    historymanager.insert_new_history(step_images, b64_result_csv)
+
     return json.dumps({
         'result': ret_result_code,
         'url': rd_url,
@@ -174,6 +180,49 @@ def pull_table():
             'step6': 'data:image/png;base64,' + step_images[5]
         }
     })
+
+
+@app.route('/gethistorylist', methods=['GET'])
+def get_historylist():
+    return historymanager.get_historylist()
+
+
+@app.route('/gethistory', methods=['GET'])
+def get_history():
+    reqid = request.values['reqid']
+    return historymanager.get_history(reqid)
+
+
+@app.route('/getsettings', methods=['GET'])
+def get_settings():
+    print(settingsmanager.get_settinglist())
+    return settingsmanager.get_settinglist()
+
+
+@app.route('/setsettings', methods=['POST'])
+def set_settings():
+    req_param = json.loads(base64.b64decode(request.values['q']).decode('utf-8'))
+    update_data = json.loads(req_param)
+
+    vline_gap = update_data['vline_gap']
+    hline_gap = update_data['hline_gap']
+    hough_manual_thr = update_data['hough_manual_thr']
+    hough_manual_thr_val = update_data['hough_manual_thr_val']
+    allowed_hnoise = update_data['allowed_hnoise']
+    allowed_vnoise = update_data['allowed_vnoise']
+    hblank_gap = update_data['hblank_gap']
+    mono_thr = update_data['mono_thr']
+
+    settingsmanager.set_settings('vline_gap', vline_gap)
+    settingsmanager.set_settings('hline_gap', hline_gap)
+    settingsmanager.set_settings('hough_manual_thr', hough_manual_thr)
+    settingsmanager.set_settings('hough_manual_thr_val', hough_manual_thr_val)
+    settingsmanager.set_settings('allowed_hnoise', allowed_hnoise)
+    settingsmanager.set_settings('allowed_vnoise', allowed_vnoise)
+    settingsmanager.set_settings('hblank_gap', hblank_gap)
+    settingsmanager.set_settings('mono_thr', mono_thr)
+
+    return 'ok', 200
 
 
 if __name__ == '__main__':

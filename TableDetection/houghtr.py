@@ -1,15 +1,25 @@
 import cv2
 import numpy as np
 import math
+from settingsmanager import get_settings
 
 def get_houghtr(source):
+    m_thr = False
+    if get_settings('hough_manual_thr') == 'TRUE':
+        m_thr = True
+    m_thr_val = float(get_settings('hough_manual_thr_val'))
+
     height, width = source.shape[:2]
     thr = min(height / 2, width / 2)
     diagonal = math.sqrt(pow(height, 2) + pow(width, 2))
     coordinates = []
     edges = cv2.Canny(source, 50, 150, apertureSize = 3)
-    lines = cv2.HoughLines(edges, 1, np.pi / 180, int(thr))
-    # lines = cv2.HoughLines(edges, 1, np.pi / 180, 500)
+
+    if m_thr:
+        lines = cv2.HoughLines(edges, 1, np.pi / 180, m_thr_val)
+    else:
+        lines = cv2.HoughLines(edges, 1, np.pi / 180, int(thr))
+
     for line in lines:
         rho, theta = line[0]
         a = np.cos(theta)
@@ -30,7 +40,6 @@ def get_houghtr(source):
         if y2 < 0: y2 = 0
         if y2 > height: y2 = height
 
-        d_slope = ''
         slope_under = x2 - x1
         slope_over = y2 - y1
         if slope_under == 0:

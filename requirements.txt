@@ -5,3 +5,7 @@ google-api-python-client
 requests
 xlrd
 opencv-python
+configparser
+mysql-connector
+python-keystoneclient
+python-swiftclient

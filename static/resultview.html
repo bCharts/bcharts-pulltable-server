@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery-3.1.1.js"></script>
+    <script>
+        $(document).ready(function () {
+            $(document.body).height($(window).height() - 20);
+
+            $.getJSON('http://127.0.0.1:8000/gethistorylist', function (data) {
+                $.each(data.history, function (i) {
+                    var tag = '<a href=# onclick=\'get_history("' + data.history[i].reqid + '")\'>' + data.history[i].reqtime + '</a><br>';
+                    $('#historylist').append(tag);
+                });
+
+                $('#progress').fadeOut(200);
+            });
+        });
+
+        $(window).resize(function () {
+            $(document.body).height($(window).height() - 20);
+        });
+
+        var get_history = function (reqid) {
+            console.log('get_history');
+            $('#progress').fadeIn(200);
+
+            $.getJSON('http://127.0.0.1:8000/gethistory?reqid=' + reqid, function (data) {
+                console.log(data);
+                $('#imageview').empty();
+                $('#imageview').append('<img src="' + data.b64_step1 + '"><br>');
+                $('#imageview').append('<img src="' + data.b64_step2 + '"><br>');
+                $('#imageview').append('<img src="' + data.b64_step3 + '"><br>');
+                $('#imageview').append('<img src="' + data.b64_step4 + '"><br>');
+                $('#imageview').append('<img src="' + data.b64_step5 + '"><br>');
+                $('#imageview').append('<img src="' + data.b64_step6 + '"><br>');
+
+                var csv = atob(data.b64_csv);
+                var splited_csv = csv.split('\n');
+                $('#csvview').empty();
+                $.each(splited_csv, function (i) {
+                    $('#csvview').append(splited_csv[i] + '<br>');
+                });
+
+                $('#progress').fadeOut(200);
+            });
+        }
+    </script>
+    <link rel="stylesheet" type="text/css" href="resultview.css">
+</head>
+<body>
+<table>
+    <tr>
+        <td colspan="2" class="menu">
+            <a href="resultview.html">Result View</a> / <a href="settings.html">Settings</a>
+        </td>
+    </tr>
+    <tr>
+        <td style="width: 20%;" rowspan="2">
+            <div class="historylist" id="historylist"></div>
+        </td>
+        <td style="width: 80%;">
+            <div id="imageview" class="imageview"></div>
+        </td>
+    </tr>
+    <tr>
+        <td style="height: 200px;">
+            <div class="csvview" id="csvview"></div>
+        </td>
+    </tr>
+</table>
+<div id="progress" class="progress">
+    <img style="width: 300px; border: none;" src="flybeefly.gif">
+</div>
+</body>
+</html>

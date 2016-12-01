@@ -1,6 +1,15 @@
 import cv2
+from settingsmanager import get_settings
 
 def add_guideline(bi_img):
+    vnoise = float(get_settings('allowed_vnoise'))
+    hnoise = float(get_settings('allowed_hnoise'))
+    hblank = float(get_settings('hblank_gap'))
+
+    print(vnoise)
+    print(hnoise)
+    print(hblank)
+
     height, width = bi_img.shape[:2]
     lines = []
 
@@ -12,14 +21,12 @@ def add_guideline(bi_img):
             if bi_img[y,x] == 0:
                 black_found += 1
 
-        # print(str(y) + ': ' + str(black_found / width))
-        # if black_found / width > 0.02:
-        if black_found / width != 0:
-            if blank_row_start_idx != -1:
-                blank_row_finish_idx = y - 1
-        else:
+        if black_found / width <= vnoise:
             if blank_row_start_idx == -1:
                 blank_row_start_idx = y
+        else:
+            if blank_row_start_idx != -1:
+                blank_row_finish_idx = y - 1
 
         # 라인 그리기
         if blank_row_start_idx != -1 and blank_row_finish_idx != -1:
@@ -44,8 +51,7 @@ def add_guideline(bi_img):
             if bi_img[y, x] == 0:
                 black_found += 1
 
-        if black_found / height < 0.02:
-        # if black_found / height == 0:
+        if black_found / height <= hnoise:
             if blank_col_start_idx == -1:
                 blank_col_start_idx = x
         else:
@@ -56,7 +62,7 @@ def add_guideline(bi_img):
         if blank_col_start_idx != -1 and blank_col_finish_idx != -1:
             gap_ratio = (blank_col_finish_idx - blank_col_start_idx) / width
             # print(gap_ratio)
-            if gap_ratio > 0.008:
+            if gap_ratio >= hblank:
                 g_x = int((blank_col_finish_idx - blank_col_start_idx) / 2) + blank_col_start_idx
                 g_y1, g_y2 = 0, height
                 lines.append(((g_x, g_y1), (g_x, g_y2)))
@@ -67,10 +73,11 @@ def add_guideline(bi_img):
             blank_col_finish_idx = x
             gap_ratio = (blank_col_finish_idx - blank_col_start_idx) / width
             # print(gap_ratio)
-            if gap_ratio > 0.008:
+            if gap_ratio >= hblank:
                 g_x = int((blank_col_finish_idx - blank_col_start_idx) / 2) + blank_col_start_idx
                 g_y1, g_y2 = 0, height
                 lines.append(((g_x, g_y1), (g_x, g_y2)))
 
     for line in lines:
         cv2.line(bi_img, line[0], line[1], 0, 1)
+
