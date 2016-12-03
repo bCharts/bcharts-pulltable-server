@@ -5,6 +5,9 @@
     <title>Title</title>
     <script src="jquery-3.1.1.js"></script>
     <script>
+        var server_addr = 'http://' + window.location.hostname + ':' + window.location.port;
+        // var server_addr = 'http://bcdev.mybluemix.net';
+
         $(document).ready(function () {
             $(document.body).height($(window).height() - 20);
             load_settings();
@@ -35,19 +38,19 @@
             console.log(update_value);
 
             $.post({
-                url: 'http://127.0.0.1:8000/setsettings',
+                url: server_addr + '/setsettings',
                 data:  'q=' + btoa(JSON.stringify(update_value)),
                 success: function (data, textStatus, jqXHR) {
                     load_settings();
                     $('#progress').fadeOut(200);
                 }
             });
-        }
+        };
 
         var load_settings = function () {
             $('#settingview').empty();
 
-            $.getJSON('http://127.0.0.1:8000/getsettings', function (data) {
+            $.getJSON(server_addr + '/getsettings', function (data) {
                 var table_tag = '<table class="settings_table">'
                 $.each(data.settings, function (i) {
                     var cur_setting = data.settings[i];
@@ -79,7 +82,7 @@
 
                 $('#settingview').append(table_tag);
             });
-        }
+        };
     </script>
     <link rel="stylesheet" type="text/css" href="settings.css">
 </head>

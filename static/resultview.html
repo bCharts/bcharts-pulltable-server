@@ -5,10 +5,13 @@
     <title>Title</title>
     <script src="jquery-3.1.1.js"></script>
     <script>
+        var server_addr = 'http://' + window.location.hostname + ':' + window.location.port;
+        // var server_addr = 'http://bcdev.mybluemix.net';
+
         $(document).ready(function () {
             $(document.body).height($(window).height() - 20);
 
-            $.getJSON('http://127.0.0.1:8000/gethistorylist', function (data) {
+            $.getJSON(server_addr + '/gethistorylist', function (data) {
                 $.each(data.history, function (i) {
                     var tag = '<a href=# onclick=\'get_history("' + data.history[i].reqid + '")\'>' + data.history[i].reqtime + '</a><br>';
                     $('#historylist').append(tag);
@@ -26,15 +29,13 @@
             console.log('get_history');
             $('#progress').fadeIn(200);
 
-            $.getJSON('http://127.0.0.1:8000/gethistory?reqid=' + reqid, function (data) {
+            $.getJSON(server_addr + '/gethistory?reqid=' + reqid, function (data) {
                 console.log(data);
                 $('#imageview').empty();
-                $('#imageview').append('<img src="' + data.b64_step1 + '"><br>');
-                $('#imageview').append('<img src="' + data.b64_step2 + '"><br>');
-                $('#imageview').append('<img src="' + data.b64_step3 + '"><br>');
-                $('#imageview').append('<img src="' + data.b64_step4 + '"><br>');
-                $('#imageview').append('<img src="' + data.b64_step5 + '"><br>');
-                $('#imageview').append('<img src="' + data.b64_step6 + '"><br>');
+
+                $.each(data.b64_images, function (i) {
+                    $('#imageview').append('<img src="' + data.b64_images[i] + '"><br>');
+                });
 
                 var csv = atob(data.b64_csv);
                 var splited_csv = csv.split('\n');
@@ -45,7 +46,7 @@
 
                 $('#progress').fadeOut(200);
             });
-        }
+        };
     </script>
     <link rel="stylesheet" type="text/css" href="resultview.css">
 </head>

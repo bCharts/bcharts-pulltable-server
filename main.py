@@ -167,19 +167,16 @@ def pull_table():
 
     historymanager.insert_new_history(step_images, b64_result_csv)
 
-    return json.dumps({
-        'result': ret_result_code,
-        'url': rd_url,
-        'csv': b64_result_csv,
-        'images': {
-            'step1': 'data:image/png;base64,' + step_images[0],
-            'step2': 'data:image/png;base64,' + step_images[1],
-            'step3': 'data:image/png;base64,' + step_images[2],
-            'step4': 'data:image/png;base64,' + step_images[3],
-            'step5': 'data:image/png;base64,' + step_images[4],
-            'step6': 'data:image/png;base64,' + step_images[5]
-        }
-    })
+    ret_val = '{"result":"' + ret_result_code + '",'
+    ret_val += '"url":"' + rd_url + '",'
+    ret_val += '"csv":"' + b64_result_csv + '",'
+    ret_val += '"images":['
+    for step_image in step_images:
+        ret_val += '"data:image/png;base64,' + step_image + '",'
+    ret_val = ret_val[:len(ret_val) - 1]
+    ret_val += ']}'
+
+    return ret_val
 
 
 @app.route('/gethistorylist', methods=['GET'])
@@ -195,7 +192,6 @@ def get_history():
 
 @app.route('/getsettings', methods=['GET'])
 def get_settings():
-    print(settingsmanager.get_settinglist())
     return settingsmanager.get_settinglist()
 
 
@@ -204,23 +200,8 @@ def set_settings():
     req_param = json.loads(base64.b64decode(request.values['q']).decode('utf-8'))
     update_data = json.loads(req_param)
 
-    vline_gap = update_data['vline_gap']
-    hline_gap = update_data['hline_gap']
-    hough_manual_thr = update_data['hough_manual_thr']
-    hough_manual_thr_val = update_data['hough_manual_thr_val']
-    allowed_hnoise = update_data['allowed_hnoise']
-    allowed_vnoise = update_data['allowed_vnoise']
-    hblank_gap = update_data['hblank_gap']
-    mono_thr = update_data['mono_thr']
-
-    settingsmanager.set_settings('vline_gap', vline_gap)
-    settingsmanager.set_settings('hline_gap', hline_gap)
-    settingsmanager.set_settings('hough_manual_thr', hough_manual_thr)
-    settingsmanager.set_settings('hough_manual_thr_val', hough_manual_thr_val)
-    settingsmanager.set_settings('allowed_hnoise', allowed_hnoise)
-    settingsmanager.set_settings('allowed_vnoise', allowed_vnoise)
-    settingsmanager.set_settings('hblank_gap', hblank_gap)
-    settingsmanager.set_settings('mono_thr', mono_thr)
+    for key in update_data:
+        settingsmanager.set_settings(key, update_data[key])
 
     return 'ok', 200
 

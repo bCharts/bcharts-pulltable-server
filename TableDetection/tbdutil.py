@@ -1,7 +1,7 @@
 from urllib.request import urlopen
 import numpy as np
 import cv2
-# from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 import base64
 from io import BytesIO
 from PIL import Image
@@ -38,8 +38,10 @@ def get_intersecting_point(l1, l2):
     if s < 0 or 1 < s or t < 0 or 1 < t:
         return 'error', None, None
 
-    px = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4))
-    py = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4))
+    px = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / (
+        (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4))
+    py = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / (
+        (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4))
 
     return 'ok', px, py
 
@@ -62,7 +64,7 @@ def get_num_h(lines):
     return cnt
 
 
-def get_v_lines(lines):
+def get_v_lines(lines, width):
     v_lines = []
     for l in lines:
         if l[0] == 'v':
@@ -88,7 +90,7 @@ def get_v_lines(lines):
     return v_lines
 
 
-def get_h_lines(lines):
+def get_h_lines(lines, height):
     h_lines = []
     for l in lines:
         if l[0] == 'h':
@@ -117,6 +119,7 @@ def get_h_lines(lines):
 def to_cv2(pil_image):
     return np.asarray(pil_image)
 
+
 def show_img_plot(cv2_img, gray=False):
     plt.xticks([]), plt.yticks([])
     if gray:
@@ -124,6 +127,7 @@ def show_img_plot(cv2_img, gray=False):
     else:
         plt.imshow(cv2_img)
     plt.show()
+
 
 def readb64(base64_string):
     sbuf = BytesIO()

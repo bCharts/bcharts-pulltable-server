@@ -3,7 +3,6 @@ from settingsmanager import get_settings
 
 def remove_extra_hlines(h_lines, img_height):
     gap_allowed = float(get_settings('hline_gap'))
-    print(gap_allowed)
 
     i = 0
     while i < len(h_lines) - 1:
@@ -18,7 +17,6 @@ def remove_extra_hlines(h_lines, img_height):
 
 def remove_extra_vlines(v_lines, img_width):
     gap_allowed = float(get_settings('vline_gap'))
-    print(gap_allowed)
 
     i = 0
     while i < len(v_lines) - 1:

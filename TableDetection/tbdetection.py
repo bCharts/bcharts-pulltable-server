@@ -9,45 +9,53 @@ import TableDetection.lineremoval as lineremoval
 import TableDetection.googlevision as googlevision
 from TableDetection.table_cell import Cell
 from settingsmanager import get_settings
+import TableDetection.marginremoval as marginremoval
 
 
 def get_csv(cv2_image):
-    # cv2_image = cv2.imread('C:\\Users\\bruce\\Desktop\\ex\\134513245.PNG')
     mono_thr = int(get_settings('mono_thr'))
+    step_images = []
 
     org_img = cv2.resize(cv2_image, (0, 0), fx=2, fy=2)
-    step1_org_img = copy.copy(org_img)
-
     height, width = org_img.shape[:2]
+
+    # step1_org_img
+    step_images.append(copy.copy(org_img))
 
     result_gt_img = copy.copy(org_img)
 
     gray_img = cv2.cvtColor(org_img, cv2.COLOR_RGB2GRAY)
     ret1, mono_img = cv2.threshold(gray_img, mono_thr, 255, cv2.THRESH_BINARY)
-    step2_mono_img = copy.copy(mono_img)
+
+    # step2_mono_img
+    step_images.append(copy.copy(mono_img))
+
+    # step2-1 remove margin
+    margins = marginremoval.get_margin(mono_img)
+    mono_img = marginremoval.remove_margin(mono_img, margins)
+    result_gt_img = marginremoval.remove_margin(result_gt_img, margins)
+    step_images.append(copy.copy(mono_img))
 
     guideaddition.add_guideline(mono_img)
-    step3_mono_img_guide_added = copy.copy(mono_img)
+
+    # step3_mono_img_guide_added
+    step_images.append(copy.copy(mono_img))
 
     lines = houghtr.get_houghtr(mono_img)
 
-    v_lines = util.get_v_lines(lines)
+    v_lines = util.get_v_lines(lines, width)
     lineremoval.remove_extra_vlines(v_lines, width)
-    h_lines = util.get_h_lines(lines)
+    h_lines = util.get_h_lines(lines, height)
     lineremoval.remove_extra_hlines(h_lines, height)
+
+    # step3-1
+    step_images.append(copy.copy(mono_img))
 
     tl_coords = []
     for r_line in h_lines:
         r_coords = []
         for c_line in v_lines:
             r_coords.append((c_line[0][0], r_line[0][1]))
-            '''
-            coor_inter = util.get_intersecting_point(r_line, c_line)
-            if coor_inter[0] == 'ok':
-                r_coords.append((c_line[0][0], int(coor_inter[2])))
-
-                print(coor_inter[1:], ' ', int(coor_inter[1]), ',', int(coor_inter[2]))
-                cv2.circle(result_gt_img, coor_inter[1:], 5, (0,255,0), 3)'''
         tl_coords.append(r_coords)
 
     cells = []
@@ -64,7 +72,9 @@ def get_csv(cv2_image):
         for cell in r_cells:
             rgb = (random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))
             cv2.rectangle(result_gt_img, cell.get_pt1(), cell.get_pt2(), rgb, 1)
-    step4_table_detected = copy.copy(result_gt_img)
+
+    # step4_table_detected
+    step_images.append(copy.copy(result_gt_img))
 
     gv_result = googlevision.analyze_image(mono_img)
     try:
@@ -153,11 +163,12 @@ def get_csv(cv2_image):
             if ret == 'ok':
                 for r_cells in cells:
                     for cell in r_cells:
+                        cv2.circle(result_gt_img, (int(cx), int(cy)), 3, (0,0,255), 3)
                         if cell.validate_point_contained((cx, cy)):
                             cell.add_text(word['description'])
-                            # print(word['description'] + ' is added')
 
-    step5_words_detected = copy.copy(result_gt_img)
+    # step5_words_detected
+    step_images.append(copy.copy(result_gt_img))
 
     final_csv = ''
     for r_cells in cells:
@@ -167,17 +178,11 @@ def get_csv(cv2_image):
                 cv2.rectangle(result_gt_img, cell.get_pt1(), cell.get_pt2(), (255, 0, 0), 2)
         final_csv = final_csv[:-1] + '\n'
 
-    step6_final_result = copy.copy(result_gt_img)
+    # step6_final_result
+    step_images.append(copy.copy(result_gt_img))
 
     return (
         'ok',
         final_csv,
-        [
-            step1_org_img,
-            step2_mono_img,
-            step3_mono_img_guide_added,
-            step4_table_detected,
-            step5_words_detected,
-            step6_final_result
-        ]
+        step_images
     )

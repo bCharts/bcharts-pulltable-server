@@ -5,10 +5,7 @@ def add_guideline(bi_img):
     vnoise = float(get_settings('allowed_vnoise'))
     hnoise = float(get_settings('allowed_hnoise'))
     hblank = float(get_settings('hblank_gap'))
-
-    print(vnoise)
-    print(hnoise)
-    print(hblank)
+    guide_thickness = int(get_settings('guide_thickness'))
 
     height, width = bi_img.shape[:2]
     lines = []
@@ -21,7 +18,7 @@ def add_guideline(bi_img):
             if bi_img[y,x] == 0:
                 black_found += 1
 
-        if black_found / width <= vnoise:
+        if black_found / width <= hnoise:
             if blank_row_start_idx == -1:
                 blank_row_start_idx = y
         else:
@@ -51,7 +48,7 @@ def add_guideline(bi_img):
             if bi_img[y, x] == 0:
                 black_found += 1
 
-        if black_found / height <= hnoise:
+        if black_found / height <= vnoise:
             if blank_col_start_idx == -1:
                 blank_col_start_idx = x
         else:
@@ -79,5 +76,5 @@ def add_guideline(bi_img):
                 lines.append(((g_x, g_y1), (g_x, g_y2)))
 
     for line in lines:
-        cv2.line(bi_img, line[0], line[1], 0, 1)
+        cv2.line(bi_img, line[0], line[1], 0, guide_thickness)
 
